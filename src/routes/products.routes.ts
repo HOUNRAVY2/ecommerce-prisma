@@ -7,7 +7,7 @@ const productRouters: Router = Router();
 
 productRouters.post('/', [authMiddleware], createProduct);
 productRouters.get('/', [authMiddleware], listProduct);
-// productRouters.get('/:id', [authMiddleware], getProductById);
+productRouters.get('/:id', [authMiddleware], getProductById);
 productRouters.delete('/:id', [authMiddleware], deleteProduct);
 productRouters.put('/:id', [authMiddleware], updateProduct);
 
