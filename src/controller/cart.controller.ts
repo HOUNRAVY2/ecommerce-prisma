@@ -34,14 +34,16 @@ const createdCart = async (req: Request, res: Response) => {
 };
 
 const cartList = async (req: Request, res: Response) => {
+  console.log("req.body.user.id :", req.body.user.id);
   const cart = await prismaClient.cartItem.findMany({
     where: {
-      id: req.body.user.id,
+      userId: req.body.user.id,
     },
     include: {
       product: true,
     },
   });
+
   res.json(cart);
 };
 
