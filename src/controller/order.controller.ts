@@ -109,7 +109,7 @@ const getOrderById = async (req: Request, res: Response): Promise<void> => {
 const listAllOrder = async (req: Request, res: Response) => {
   let whereClause = {};
 
-  const status = req.params.status;
+  const status = req.query.status;
 
   const skip = req.query.skip ? Number(req.query.skip) : 0;
   if (status) {
@@ -147,7 +147,7 @@ const changeStatus = async (req: Request, res: Response) => {
         status: req.body.status,
       },
     });
-    res.json(order);
+    res.json({ "Status Changed Successfully:": order });
   } catch (err) {
     console.log(err);
     res.status(500).json({
@@ -155,4 +155,33 @@ const changeStatus = async (req: Request, res: Response) => {
     });
   }
 };
-export { createOrder, listOrder, cancelOrder, getOrderById, listAllOrder };
+
+const listUserOders = async (req: Request, res: Response) => {
+  const skip = req.query.skip ? Number(req.query.skip) : 0;
+  let whereClause: any = {
+    userId: +req.params.id,
+  };
+  const status = req.params.status;
+  if (status) {
+    whereClause = {
+      ...whereClause,
+      status,
+    };
+  }
+
+  const orders = await prismaClient.order.findMany({
+    where: whereClause,
+    skip,
+    take: 5,
+  });
+  res.json(orders);
+};
+export {
+  createOrder,
+  listOrder,
+  cancelOrder,
+  getOrderById,
+  listAllOrder,
+  changeStatus,
+  listUserOders,
+};

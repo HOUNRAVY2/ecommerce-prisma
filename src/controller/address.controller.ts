@@ -23,6 +23,7 @@ const createAddress = async (
         city: payload.city,
         country: payload.country,
         lineOne: payload.lineOne,
+        lineTwo: payload.lineTwo,
         pincode: payload.pincode,
         userId: use.id,
       },
