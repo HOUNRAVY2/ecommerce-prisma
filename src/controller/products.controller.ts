@@ -2,28 +2,42 @@ import { Request, Response } from "express";
 import { prismaClient } from "..";
 import { NotFoundException } from "../exceptions/not-found";
 import { ErrorCode } from "../exceptions/root";
+import { CreateProductSchema } from "../schema/products";
 
 const createProduct = async (req: Request, res: Response) => {
-  const product = await prismaClient.product.create({
-    data: {
-      ...req.body,
-      tags: req.body.tags.join(","),
-    },
-  });
-  res.json(product);
+  const validatedData = CreateProductSchema.parse(req.body);
+  try {
+    const product = await prismaClient.product.create({
+      data: {
+        name: validatedData.name,
+        description: validatedData.description,
+        price: validatedData.price,
+        tags: validatedData.tags,
+      },
+    });
+    res.json(product);
+  } catch (err) {
+    console.log("my error:", err);
+    res.status(500).json({
+      error: "Failed to create product",
+      errorCode: ErrorCode.PRODUCT_NOT_FOUND,
+    });
+  }
 };
 
 const updateProduct = async (req: Request, res: Response) => {
+  const validatedData = CreateProductSchema.parse(req.body);
   try {
-    const product = req.body;
-    if (product.tags) {
-      product.tags = product.tags.join(",");
-    }
     const updateProduct = await prismaClient.product.update({
       where: {
         id: +req.params.id,
       },
-      data: product,
+      data: {
+        name: validatedData.name,
+        description: validatedData.description,
+        price: validatedData.price,
+        tags: validatedData.tags,
+      },
     });
     res.json(updateProduct);
   } catch (err) {
@@ -72,6 +86,7 @@ const getProductById = async (req: Request, res: Response) => {
 
 const searchProduct = async (req: Request, res: Response) => {
   try {
+    const query = req.query.q?.toString() || "";
     const products = await prismaClient.product.findMany({
       where: {
         name: {
@@ -81,7 +96,7 @@ const searchProduct = async (req: Request, res: Response) => {
           search: req.query.q?.toString(),
         },
         tags: {
-          search: req.query.q?.toString(),
+          has: query,
         },
       },
     });

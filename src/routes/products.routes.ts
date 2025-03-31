@@ -16,10 +16,7 @@ productRouters.post("/", [authMiddleware], createProduct);
 productRouters.get("/", [authMiddleware], listProduct);
 productRouters.get("/search", [authMiddleware], searchProduct);
 productRouters.get("/:id", [authMiddleware], getProductById);
-productRouters.delete("/:id", [authMiddleware], deleteProduct);
 productRouters.put("/:id", [authMiddleware], updateProduct);
-
-// Use the error handling middleware
-productRouters.use(errorHandler);
+productRouters.delete("/:id", [authMiddleware], deleteProduct);
 
 export default productRouters;

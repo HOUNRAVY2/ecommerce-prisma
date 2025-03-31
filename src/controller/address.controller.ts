@@ -3,16 +3,16 @@ import { prismaClient } from "..";
 import { Address, User } from "@prisma/client";
 import { NotFoundException } from "../exceptions/not-found";
 import { ErrorCode } from "../exceptions/root";
+import { z } from "zod";
 import { AddressSchema, UpdateUserSchema, RoleSchema } from "../schema/users";
-import { json } from "stream/consumers";
 
 const createAddress = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const payload = AddressSchema.parse(req.body);
   try {
+    const payload = AddressSchema.parse(req.body);
     const use = await prismaClient.user.findFirstOrThrow({
       where: {
         id: req.body.user.id,
@@ -30,14 +30,17 @@ const createAddress = async (
     });
     res.json(address);
   } catch (err) {
-    console.log("err :", err);
-
-    if (err instanceof NotFoundException) {
-      res
-        .status(404)
-        .json({ error: "User Not Found", errorCode: ErrorCode.USER_NOT_FOUND });
+    if (err instanceof z.ZodError) {
+      res.status(400).json({
+        error: "Validation error",
+        message: err.errors,
+      });
     } else {
-      res.status(500).json({ error: "Failed to create address" });
+      console.log("my error:", err);
+      res.status(500).json({
+        error: "Failed to create address",
+        errorCode: ErrorCode.ADDRESS_NOT_FOUND,
+      });
     }
   }
 };
@@ -146,6 +149,22 @@ const getUserById = async (req: Request, res: Response) => {
         Address: true,
       },
     });
+    if (user.Address.length === 0) {
+      user.Address = [
+        {
+          id: 0,
+          lineOne: "No address yet",
+          lineTwo: "",
+          city: "",
+          country: "",
+          pincode: "",
+          userId: user.id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          formattedAddress: "No address yet",
+        },
+      ];
+    }
     res.json(user);
   } catch (err) {
     res.status(404).json({
@@ -156,8 +175,8 @@ const getUserById = async (req: Request, res: Response) => {
 };
 
 const changeRole = async (req: Request, res: Response) => {
-  const validatedData = RoleSchema.parse(req.body);
   try {
+    const validatedData = RoleSchema.parse(req.body);
     const user = await prismaClient.user.update({
       where: {
         id: +req.params.id,
@@ -166,7 +185,7 @@ const changeRole = async (req: Request, res: Response) => {
         role: validatedData.role,
       },
     });
-    res.json({ message: "Successfully for change role" });
+    res.json({ message: "Successfully for change role", user });
   } catch (err) {
     res.status(404).json({
       error: "Something went wrong",

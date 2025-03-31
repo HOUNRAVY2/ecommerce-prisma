@@ -21,5 +21,4 @@ orderRouter.put("/:id/cancel", [authMiddleware], cancelOrder);
 orderRouter.put("/:id/status", [authMiddleware], changeStatus);
 orderRouter.get("/:id/status", [authMiddleware], listUserOders);
 
-orderRouter.use(errorHandler);
 export default orderRouter;
